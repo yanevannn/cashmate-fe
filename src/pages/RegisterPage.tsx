@@ -1,8 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import eye from "../assets/icons/eye.svg";
-import eyeOff from "../assets/icons/eye-off.svg";
+import { Eye, EyeOff } from "lucide-react";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -60,7 +59,7 @@ const RegisterPage = () => {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
         {/* Judul */}
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 mb-6 text-center">
-          Daftar CashMate
+          Register CashMate
         </h1>
 
         {/* Form */}
@@ -115,17 +114,9 @@ const RegisterPage = () => {
                 className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
               >
                 {showPassword ? (
-                  <img
-                    src={eye}
-                    className="w-5 h-5 filter grayscale opacity-50"
-                    alt="Hide password"
-                  />
+                  <Eye className="w-5 h-5 filter grayscale opacity-50" />
                 ) : (
-                  <img
-                    src={eyeOff}
-                    className="w-5 h-5 filter grayscale opacity-50"
-                    alt="Show password"
-                  />
+                  <EyeOff className="w-5 h-5 filter grayscale opacity-50" />
                 )}
               </button>
             </div>
@@ -151,17 +142,9 @@ const RegisterPage = () => {
                 className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
               >
                 {showConfirm ? (
-                  <img
-                    src={eye}
-                    className="w-5 h-5 filter grayscale opacity-50"
-                    alt="Hide password"
-                  />
+                  <Eye className="w-5 h-5 filter grayscale opacity-50" />
                 ) : (
-                  <img
-                    src={eyeOff}
-                    className="w-5 h-5 filter grayscale opacity-50"
-                    alt="Show password"
-                  />
+                  <EyeOff className="w-5 h-5 filter grayscale opacity-50" />
                 )}
               </button>
             </div>

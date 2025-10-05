@@ -1,8 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import eye from "../assets/icons/eye.svg";
-import eyeOff from "../assets/icons/eye-off.svg";
+import {Eye, EyeOff} from "lucide-react";
 
 const LoginPage = () => {
   // State untuk menampilkan atau menyembunyikan password
@@ -101,17 +100,9 @@ const LoginPage = () => {
                   className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
                 >
                   {showPassword ? (
-                    <img
-                      src={eye}
-                      className="w-5 h-5 filter grayscale opacity-50"
-                      alt="Hide password"
-                    />
+                    <Eye className="w-5 h-5 filter grayscale opacity-50" />
                   ) : (
-                    <img
-                      src={eyeOff}
-                      className="w-5 h-5 filter grayscale opacity-50"
-                      alt="Show password"
-                    />
+                    <EyeOff className="w-5 h-5 filter grayscale opacity-50" />
                   )}
                 </button>
               </div>
