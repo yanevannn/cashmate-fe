@@ -1,5 +1,5 @@
-import Footer from "../components/Layout/Footer";
-import Header from "../components/Layout/Header";
+import Footer from "../components/Layout/FooterHome";
+import Header from "../components/Layout/HeaderHome";
 
 const HomePage = () => {
   return (

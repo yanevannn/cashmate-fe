@@ -1,12 +1,33 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import {Eye, EyeOff} from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
+
+interface DecodedToken {
+  sub: string;
+  email: string;
+  name?: string;
+  role?: string;
+  exp?: number;
+  iat?: number;
+}
 
 const LoginPage = () => {
+  // Initial Navigate
+  const navigate = useNavigate();
+
+  // Use Effect untuk cek token di localStorage
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (token) {
+      navigate("/dashboard");
+    }
+  }, [navigate]);
+
   // State untuk menampilkan atau menyembunyikan password
   const [showPassword, setShowPassword] = useState(false);
-  const handelTooglePassword = () => {
+  const handleTogglePassword = () => {
     setShowPassword(!showPassword);
   };
 
@@ -18,9 +39,6 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Initial Navigate
-  const navigate = useNavigate();
-
   // Fungsi untuk menangani submit form
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,14 +49,17 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(URL, { email, password });
-      console.log("Login berhasil:", response.data);
+      // console.log("Login berhasil:", response.data);
 
       // Simpan token ke localStorage
       localStorage.setItem("access_token", response.data.data.access_token);
       localStorage.setItem("refresh_token", response.data.data.refresh_token);
 
+      const decoded: DecodedToken = jwtDecode(response.data.data.access_token);
+      localStorage.setItem("user_info", JSON.stringify(decoded));
+
       // Redirect ke halaman dashboard atau halaman lain setelah login berhasil
-      navigate("/");
+      navigate("/dashboard");
     } catch (err: any) {
       const status = err.response?.status;
       const message =
@@ -96,7 +117,7 @@ const LoginPage = () => {
                 />
                 <button
                   type="button"
-                  onClick={handelTooglePassword}
+                  onClick={handleTogglePassword}
                   className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
                 >
                   {showPassword ? (
