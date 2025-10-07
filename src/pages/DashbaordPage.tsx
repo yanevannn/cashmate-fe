@@ -78,9 +78,85 @@ const DashboardPage: React.FC = () => {
             <Route
               path="/"
               element={
-                <div className="p-6 bg-white rounded-2xl shadow-lg text-gray-400 text-center">
-                  Dashboard Overview
-                </div>
+                <>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {/* Layout cards sudah responsive dengan grid-cols-1/2/4 */}
+                      <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                        <p className="text-sm font-medium text-blue-600">
+                          Total Users
+                        </p>
+                        <p className="text-3xl font-bold text-gray-800 mt-1">
+                          2,450
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          +12% from last month
+                        </p>
+                      </div>
+                      <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                        <p className="text-sm font-medium text-blue-600">
+                          Total Transactions
+                        </p>
+                        <p className="text-3xl font-bold text-gray-800 mt-1">
+                          15,890
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          -5% from last week
+                        </p>
+                      </div>
+                      <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                        <p className="text-sm font-medium text-blue-600">
+                          Revenue
+                        </p>
+                        <p className="text-3xl font-bold text-gray-800 mt-1">
+                          Rp 120M
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          Target reached
+                        </p>
+                      </div>
+                      <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                        <p className="text-sm font-medium text-blue-600">
+                          Active Categories
+                        </p>
+                        <p className="text-3xl font-bold text-gray-800 mt-1">
+                          45
+                        </p>
+                        <p className="text-xs text-gray-500 mt-2">
+                          New: Electronics
+                        </p>
+                      </div>
+                    </div>
+                    {/* Layout grafik/tabel juga responsif: grid-cols-1 di mobile, lg:grid-cols-3 di desktop */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg border border-gray-100 min-h-96">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                          Latest Transactions
+                        </h3>
+                        <div className="h-64 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">
+                          Placeholder: Grafik atau Tabel Transaksi
+                        </div>
+                      </div>
+                      <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                          User Activity
+                        </h3>
+                        <div className="h-64 flex items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">
+                          Placeholder: Detail Aktivitas User
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        Additional Data
+                      </h3>
+                      <p className="text-gray-600 mt-2">
+                        Area ini bisa digunakan untuk informasi lain seperti
+                        daftar kategori atau notifikasi sistem.
+                      </p>
+                    </div>
+                  </div>
+                </>
               }
             />
             <Route path="category/*" element={<CategoryManagement />} />
