@@ -5,6 +5,7 @@ import Header from "../components/Layout/Header";
 import CategoryManagement from "../components/Dashboard/CategoryManagement";
 import UserManagement from "../components/Dashboard/UserManagement";
 import TransactionManagement from "../components/Dashboard/TransactionManagement";
+import Card from "../components/ui/Card";
 
 interface User {
   name: string;
@@ -82,50 +83,26 @@ const DashboardPage: React.FC = () => {
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                       {/* Layout cards sudah responsive dengan grid-cols-1/2/4 */}
-                      <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-                        <p className="text-sm font-medium text-blue-600">
-                          Total Users
-                        </p>
-                        <p className="text-3xl font-bold text-gray-800 mt-1">
-                          2,450
-                        </p>
-                        <p className="text-xs text-gray-500 mt-2">
-                          +12% from last month
-                        </p>
-                      </div>
-                      <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-                        <p className="text-sm font-medium text-blue-600">
-                          Total Transactions
-                        </p>
-                        <p className="text-3xl font-bold text-gray-800 mt-1">
-                          15,890
-                        </p>
-                        <p className="text-xs text-gray-500 mt-2">
-                          -5% from last week
-                        </p>
-                      </div>
-                      <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-                        <p className="text-sm font-medium text-blue-600">
-                          Revenue
-                        </p>
-                        <p className="text-3xl font-bold text-gray-800 mt-1">
-                          Rp 120M
-                        </p>
-                        <p className="text-xs text-gray-500 mt-2">
-                          Target reached
-                        </p>
-                      </div>
-                      <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-                        <p className="text-sm font-medium text-blue-600">
-                          Active Categories
-                        </p>
-                        <p className="text-3xl font-bold text-gray-800 mt-1">
-                          45
-                        </p>
-                        <p className="text-xs text-gray-500 mt-2">
-                          New: Electronics
-                        </p>
-                      </div>
+                      <Card
+                        title="Total Users"
+                        value="2,450"
+                        footer="+12% from last month"
+                      />
+                      <Card
+                        title="Total Transactions"
+                        value="15,890"
+                        footer="-5% from last week"
+                      />
+                      <Card
+                        title="Revenue"
+                        value="Rp 120M"
+                        footer="Target reached"
+                      />
+                      <Card
+                        title="Active Sessions"
+                        value="1,200"
+                        footer="+8% from yesterday"
+                      />
                     </div>
                     {/* Layout grafik/tabel juga responsif: grid-cols-1 di mobile, lg:grid-cols-3 di desktop */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
