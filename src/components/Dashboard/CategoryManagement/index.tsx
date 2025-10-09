@@ -11,6 +11,7 @@ interface Category {
 
 const CategoryManagement: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const API_URL = `${import.meta.env.VITE_API_URL}/categories`;
   const token = localStorage.getItem("access_token");
@@ -28,6 +29,40 @@ const CategoryManagement: React.FC = () => {
       })
       .catch((err) => console.error("Error fetching categories:", err));
   }, []);
+
+  const handleDelete = async (id: number) => {
+    const confirmDelete = confirm(
+      "Are you sure you want to delete this category?"
+    );
+    if (!confirmDelete) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      console.log("Delete response:", data);
+
+      if (response.ok) {
+        // Hapus dari state tanpa refetch
+        setCategories((prev) => prev.filter((cat) => cat.id !== id));
+      } else {
+        const errData = await response.json();
+        alert(
+          `Failed to delete category: ${errData.message || "Unknown error"}`
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      alert("Failed to delete category. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
@@ -78,7 +113,16 @@ const CategoryManagement: React.FC = () => {
                   <button className="text-blue-600 hover:text-blue-900 mx-1 p-1 rounded-full hover:bg-blue-100">
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button className="text-red-600 hover:text-red-900 mx-1 p-1 rounded-full hover:bg-red-100">
+                  {/* <button className="text-red-600 hover:text-red-900 mx-1 p-1 rounded-full hover:bg-red-100">
+                    <Trash2 className="w-4 h-4" />
+                  </button> */}
+                  <button
+                    disabled={loading}
+                    onClick={() => handleDelete(category.id)}
+                    className={`text-red-600 hover:text-red-900 mx-1 p-1 rounded-full hover:bg-red-100 ${
+                      loading ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>
@@ -87,7 +131,7 @@ const CategoryManagement: React.FC = () => {
             {categories.length === 0 && (
               <tr>
                 <td
-                  colSpan={3}
+                  colSpan={4}
                   className="text-center text-gray-500 py-6 text-sm"
                 >
                   No categories found.
