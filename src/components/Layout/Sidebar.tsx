@@ -1,5 +1,13 @@
 import React from "react";
-import { LayoutGrid, Users, Receipt, LogOut, X, LayoutList } from "lucide-react";
+import {
+  LayoutGrid,
+  Users,
+  Receipt,
+  LogOut,
+  X,
+  LayoutList,
+} from "lucide-react";
+import useUserRole from "../../hooks/useUserRole";
 
 interface SidebarItem {
   name: string;
@@ -15,7 +23,13 @@ interface SidebarProps {
   onClose: () => void;
 }
 
-const sidebarItems: SidebarItem[] = [
+const UserSidebarItems: SidebarItem[] = [
+  { name: "Dashboard", icon: LayoutGrid, path: "/" },
+  { name: "Category", icon: LayoutList, path: "/category" },
+  { name: "Transaction", icon: Receipt, path: "/transaction" },
+];
+
+const AdminSidebarItems: SidebarItem[] = [
   { name: "Dashboard", icon: LayoutGrid, path: "/" },
   { name: "Category", icon: LayoutList, path: "/category" },
   { name: "User", icon: Users, path: "/user" },
@@ -33,6 +47,10 @@ const Sidebar: React.FC<SidebarProps> = ({
     onNavigate(path);
     onClose();
   };
+
+  const role = useUserRole();
+
+  const sidebarItems = role === "administrator" ? AdminSidebarItems : UserSidebarItems;
 
   return (
     <>
