@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
-import TypeBadge from "../../ui/Typebadge";
+import TypeBadge from "../../ui/TypeBadge";
+import axios from "axios";
 
 interface Category {
   id: number;
@@ -17,17 +18,25 @@ const CategoryManagement: React.FC = () => {
   const token = localStorage.getItem("access_token");
 
   useEffect(() => {
-    fetch(API_URL, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        // console.log("Fetched categories:", data.data);
-        setCategories(data.data || data);
-      })
-      .catch((err) => console.error("Error fetching categories:", err));
+    setLoading(true);
+    const fetchCategories = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(API_URL, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        // console.log("Fetched categories:", res.data.data || res.data);
+        setCategories(res.data.data || res.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   const handleDelete = async (id: number) => {
@@ -38,27 +47,28 @@ const CategoryManagement: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/${id}`, {
-        method: "DELETE",
+      const res = await axios.delete(`${API_URL}/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await response.json();
-      console.log("Delete response:", data);
 
-      if (response.ok) {
-        // Hapus dari state tanpa refetch
+      console.log("Delete response:", res.data);
+
+      if (res.status === 200 || res.status === 204) {
         setCategories((prev) => prev.filter((cat) => cat.id !== id));
       } else {
-        const errData = await response.json();
         alert(
-          `Failed to delete category: ${errData.message || "Unknown error"}`
+          `Failed to delete category: ${res.data.message || "Unknown error"}`
         );
       }
-    } catch (error) {
+    } catch (error : any) {
       console.error("Error deleting category:", error);
-      alert("Failed to delete category. Please try again.");
+      alert(
+        `Failed to delete category: ${
+          error.response?.data?.message || error.message
+        }`
+      );
     } finally {
       setLoading(false);
     }
@@ -98,37 +108,16 @@ const CategoryManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {categories.map((category) => (
-              <tr key={category.id} className="hover:bg-blue-50 transition">
-                <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                  {category.name}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  <TypeBadge type={category.type.toLowerCase()} />
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-600">
-                  {category.description || "-"}
-                </td>
-                <td className="px-6 py-4 text-center">
-                  <button className="text-blue-600 hover:text-blue-900 mx-1 p-1 rounded-full hover:bg-blue-100">
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  {/* <button className="text-red-600 hover:text-red-900 mx-1 p-1 rounded-full hover:bg-red-100">
-                    <Trash2 className="w-4 h-4" />
-                  </button> */}
-                  <button
-                    disabled={loading}
-                    onClick={() => handleDelete(category.id)}
-                    className={`text-red-600 hover:text-red-900 mx-1 p-1 rounded-full hover:bg-red-100 ${
-                      loading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+            {loading ? (
+              <tr>
+                <td
+                  colSpan={4}
+                  className="text-center text-gray-500 py-6 text-sm"
+                >
+                  Loading categories...
                 </td>
               </tr>
-            ))}
-            {categories.length === 0 && (
+            ) : categories.length === 0 ? (
               <tr>
                 <td
                   colSpan={4}
@@ -137,6 +126,34 @@ const CategoryManagement: React.FC = () => {
                   No categories found.
                 </td>
               </tr>
+            ) : (
+              categories.map((category) => (
+                <tr key={category.id} className="hover:bg-blue-50 transition">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    {category.name}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    <TypeBadge type={category.type.toLowerCase()} />
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {category.description || "-"}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <button className="text-blue-600 hover:text-blue-900 mx-1 p-1 rounded-full hover:bg-blue-100">
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      disabled={loading}
+                      onClick={() => handleDelete(category.id)}
+                      className={`text-red-600 hover:text-red-900 mx-1 p-1 rounded-full hover:bg-red-100 ${
+                        loading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
