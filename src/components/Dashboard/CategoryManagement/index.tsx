@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import TypeBadge from "../../ui/TypeBadge";
-import axios from "axios";
+import apiClient from "../../../api/axios";
 
 interface Category {
   id: number;
@@ -13,29 +13,24 @@ interface Category {
 const CategoryManagement: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const API_URL = `${import.meta.env.VITE_API_URL}/categories`;
-  const token = localStorage.getItem("access_token");
+  const fetchCategories = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await apiClient.get("/categories");
+      setCategories(response.data.data || response.data);
+    } catch (err: any) {
+      console.error("Error fetching categories:", err);
+      setError(err.response?.data?.message || "Failed to fetch categories");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setLoading(true);
-    const fetchCategories = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get(API_URL, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        // console.log("Fetched categories:", res.data.data || res.data);
-        setCategories(res.data.data || res.data);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCategories();
   }, []);
 
@@ -46,29 +41,20 @@ const CategoryManagement: React.FC = () => {
     if (!confirmDelete) return;
 
     setLoading(true);
+
     try {
-      const res = await axios.delete(`${API_URL}/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await apiClient.delete(`/categories/${id}`);
 
-      console.log("Delete response:", res.data);
+      // Update state setelah berhasil delete
+      setCategories((prev) => prev.filter((cat) => cat.id !== id));
 
-      if (res.status === 200 || res.status === 204) {
-        setCategories((prev) => prev.filter((cat) => cat.id !== id));
-      } else {
-        alert(
-          `Failed to delete category: ${res.data.message || "Unknown error"}`
-        );
-      }
-    } catch (error : any) {
-      console.error("Error deleting category:", error);
-      alert(
-        `Failed to delete category: ${
-          error.response?.data?.message || error.message
-        }`
-      );
+      // Optional: Tampilkan success message
+      alert("Category deleted successfully!");
+    } catch (err: any) {
+      console.error("Error deleting category:", err);
+      const errorMessage =
+        err.response?.data?.message || "Failed to delete category";
+      alert(`Error: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -82,13 +68,18 @@ const CategoryManagement: React.FC = () => {
         </h1>
         <button
           onClick={() => console.log("Add Category")}
-          className="flex items-center bg-blue-600 text-white py-2 px-4 rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-md"
+          disabled={loading}
+          className="flex items-center bg-blue-600 text-white py-2 px-4 rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <PlusCircle className="w-5 h-5 mr-2" />
           Add New Category
         </button>
       </div>
-
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
       <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -108,13 +99,13 @@ const CategoryManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {loading ? (
+            {loading && categories.length === 0 ? (
               <tr>
-                <td
-                  colSpan={4}
-                  className="text-center text-gray-500 py-6 text-sm"
-                >
-                  Loading categories...
+                <td colSpan={4} className="text-center text-gray-500 py-8">
+                  <div className="flex flex-col items-center">
+                    <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+                    <p className="mt-2 text-sm">Loading categories...</p>
+                  </div>
                 </td>
               </tr>
             ) : categories.length === 0 ? (
@@ -139,15 +130,17 @@ const CategoryManagement: React.FC = () => {
                     {category.description || "-"}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <button className="text-blue-600 hover:text-blue-900 mx-1 p-1 rounded-full hover:bg-blue-100">
+                    <button
+                      onClick={() => console.log("Edit category:", category.id)}
+                      disabled={loading}
+                      className="text-blue-600 hover:text-blue-900 mx-1 p-1 rounded-full hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       disabled={loading}
                       onClick={() => handleDelete(category.id)}
-                      className={`text-red-600 hover:text-red-900 mx-1 p-1 rounded-full hover:bg-red-100 ${
-                        loading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
+                      className="text-red-600 hover:text-red-900 mx-1 p-1 rounded-full hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
