@@ -1,9 +1,10 @@
 import apiClient from "./axios";
 
 export interface Category {
-  id: number;
   name: string;
   type: "income" | "expense";
+  icon: string;
+  color: string;
   description: string;
 }
 
@@ -13,6 +14,14 @@ export interface CategoryUpdate {
     description?: string;
     icon?: string;
     color?: string;
+}
+
+export interface createCategoryBody {
+    name: string;
+    type: "income" | "expense";
+    icon: string;
+    color: string;
+    description?: string;
 }
 
 const getCategories = async () => {
@@ -25,12 +34,12 @@ const getCategoryById = async (id: number) => {
     return response.data.data || response.data;
 }
 
-const createCategory = async (category: Omit<Category, "id">) => {
+const createCategory = async (category: createCategoryBody) => {
   const response = await apiClient.post("/categories", category);
   return response.data;
 };
 
-const updateCategoryById = async (id: number , categoryUpdate : CategoryUpdate){
+const updateCategoryById = async (id: number , categoryUpdate : CategoryUpdate) => {
     const response = await apiClient.put(`/categories/${id}`, categoryUpdate);
     return response.data.data || response.data;
 }
@@ -42,4 +51,4 @@ const deleteCategory = async (id: number) => {
 
 
 
-export { getCategories, getCategoryById, deleteCategory, createCategory };
+export { getCategories,getCategoryById, createCategory, updateCategoryById, deleteCategory };

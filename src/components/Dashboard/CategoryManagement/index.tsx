@@ -1,30 +1,41 @@
 import React, { useEffect, useState } from "react";
 import { PlusCircle, Edit, Trash2 } from "lucide-react";
 import TypeBadge from "../../ui/TypeBadge";
-import apiClient from "../../../api/axios";
-
-interface Category {
-  id: number;
-  name: string;
-  type: string;
-  description: string;
-}
+import type { Category, createCategoryBody } from "../../../api/apiCategory";
+import { createCategory, deleteCategory, getCategories } from "../../../api/apiCategory";
+import { useForm, type SubmitHandler } from "react-hook-form";
 
 const CategoryManagement: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const { register, handleSubmit } = useForm<createCategoryBody>();
+  const onSubmit: SubmitHandler<createCategoryBody> = async (data) => {
+    try {
+      await createCategory(data);
+      await fetchCategories();
+      setShowCreateModal(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const fetchCategories = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const response = await apiClient.get("/categories");
-      setCategories(response.data.data || response.data);
-    } catch (err: any) {
+      const data = await getCategories();
+      console.log("Fetched categories:", data);
+      if (data == null) {
+        setCategories([]);
+        return;
+      }
+      setCategories(data);
+    } catch (err) {
       console.error("Error fetching categories:", err);
-      setError(err.response?.data?.message || "Failed to fetch categories");
+      setError("Failed to fetch categories");
     } finally {
       setLoading(false);
     }
@@ -43,18 +54,12 @@ const CategoryManagement: React.FC = () => {
     setLoading(true);
 
     try {
-      await apiClient.delete(`/categories/${id}`);
-
-      // Update state setelah berhasil delete
+      await deleteCategory(id);
       setCategories((prev) => prev.filter((cat) => cat.id !== id));
-
-      // Optional: Tampilkan success message
       alert("Category deleted successfully!");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error deleting category:", err);
-      const errorMessage =
-        err.response?.data?.message || "Failed to delete category";
-      alert(`Error: ${errorMessage}`);
+      setError("Failed to delete category");
     } finally {
       setLoading(false);
     }
@@ -67,7 +72,7 @@ const CategoryManagement: React.FC = () => {
           Category Management
         </h1>
         <button
-          onClick={() => console.log("Add Category")}
+          onClick={() => setShowCreateModal(true)}
           disabled={loading}
           className="flex items-center bg-blue-600 text-white py-2 px-4 rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -89,6 +94,9 @@ const CategoryManagement: React.FC = () => {
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Type
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Icon
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Description
@@ -127,6 +135,9 @@ const CategoryManagement: React.FC = () => {
                     <TypeBadge type={category.type.toLowerCase()} />
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
+                    <span className="text-xs">{category.icon}</span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
                     {category.description || "-"}
                   </td>
                   <td className="px-6 py-4 text-center">
@@ -151,6 +162,91 @@ const CategoryManagement: React.FC = () => {
           </tbody>
         </table>
       </div>
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-gray-400/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4">
+            <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">
+              Create New Category
+            </h2>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Name
+                </label>
+                <input
+                  {...register("name", { required: true })}
+                  placeholder="Enter category name"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Type
+                </label>
+                <select
+                  {...register("type", { required: true })}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                >
+                  <option value="income">Income</option>
+                  <option value="expense">Expense</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Icon
+                </label>
+                <input
+                  {...register("icon", { required: true })}
+                  placeholder="Enter icon name (e.g., '💰, '🍔')"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Color
+                </label>
+                <select {...register("color", { required: true })} 
+                defaultValue={"red"}
+                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                  <option value="red">Red</option>
+                  <option value="green">Green</option>
+                  <option value="blue">Blue</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  {...register("description")}
+                  rows={4}
+                  placeholder="Add a description (optional)"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                ></textarea>
+              </div>
+              <div>
+                <button 
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="w-full mb-3 bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 active:scale-[0.98] transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 active:scale-[0.98] transition-all"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
