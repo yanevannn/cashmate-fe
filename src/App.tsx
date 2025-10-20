@@ -6,10 +6,12 @@ import ActivatePage from "./pages/ActivatePage";
 import DashboardPage from "./pages/DashbaordPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import LogoutPage from "./pages/LogoutPage";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   return (
     <>
+      <Toaster />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />

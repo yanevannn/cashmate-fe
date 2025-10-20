@@ -6,6 +6,7 @@ import CategoryManagement from "../components/Dashboard/CategoryManagement";
 import UserManagement from "../components/Dashboard/UserManagement";
 import TransactionManagement from "../components/Dashboard/TransactionManagement";
 import Card from "../components/ui/Card";
+import { toast } from "react-hot-toast";
 
 interface User {
   name: string;
@@ -48,6 +49,11 @@ const DashboardPage: React.FC = () => {
         email: parsedUser.email,
         initials,
       });
+    }
+    const loginRedirect = localStorage.getItem("login_redirect");
+    if (loginRedirect) {
+      toast("Anda Sudah Login", { icon:"⚠️",duration: 3000 });
+      localStorage.removeItem("login_redirect");
     }
   }, []);
 

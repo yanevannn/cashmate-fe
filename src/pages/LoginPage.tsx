@@ -1,101 +1,98 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Eye, EyeOff } from "lucide-react";
+import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { AxiosError } from "axios";
+import { doLogin } from "../api/apiAuth";
 import { jwtDecode } from "jwt-decode";
+import { Eye, EyeOff } from "lucide-react";
 
-interface DecodedToken {
-  sub: string;
+type LoginFormSchema = {
   email: string;
-  name?: string;
-  role?: string;
-  exp?: number;
-  iat?: number;
-}
+  password: string;
+};
+
+type UserInfo = {
+  id: string;
+  username: string;
+  email: string;
+  iat: number;
+  exp: number;
+};
 
 const LoginPage = () => {
-  // Initial Navigate
   const navigate = useNavigate();
-
-  // Use Effect untuk cek token di localStorage
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      navigate("/dashboard");
-    }
-  }, [navigate]);
-
-  // State untuk menampilkan atau menyembunyikan password
+  const form = useForm<LoginFormSchema>();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const handleTogglePassword = () => {
     setShowPassword(!showPassword);
   };
 
-  // State untuk menyimpan data form (email dan password)
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  // State untuk Loading dan error
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  // Fungsi untuk menangani submit form
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleLoginSubmit = async (values: LoginFormSchema) => {
     setLoading(true);
-    setError("");
-
-    const URL = import.meta.env.VITE_API_URL + "/auth/login";
-
     try {
-      const response = await axios.post(URL, { email, password });
-      // console.log("Login berhasil:", response.data);
+      const response = await doLogin(values);
+      const acces_token = response.data.data.access_token;
+      const refresh_token = response.data.data.refresh_token;
+      const userData = jwtDecode<UserInfo>(acces_token);
 
-      // Simpan token ke localStorage
-      localStorage.setItem("access_token", response.data.data.access_token);
-      localStorage.setItem("refresh_token", response.data.data.refresh_token);
+      localStorage.setItem("access_token", acces_token);
+      localStorage.setItem("refresh_token", refresh_token);
+      localStorage.setItem("user_info", JSON.stringify(userData));
 
-      const decoded: DecodedToken = jwtDecode(response.data.data.access_token);
-      localStorage.setItem("user_info", JSON.stringify(decoded));
-
-      // Redirect ke halaman dashboard atau halaman lain setelah login berhasil
       navigate("/dashboard");
-    } catch (err: any) {
-      const status = err.response?.status;
-      const message =
-        err.response?.data?.message ||
-        "Login gagal. Silakan periksa email dan password Anda.";
-
-      if (status === 401 && message.toLowerCase().includes("not activated")) {
-        localStorage.setItem("pending_email", email);
-        navigate("/activate");
-
-        return;
+      setLoading(false);
+      toast.success("Login berhasil!", { duration: 3000 });
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        if (error.status === 401) {
+          toast.error("Email atau password salah. Silakan coba lagi.");
+        } else if (error.status === 400) {
+          const backendValidationErrors = error.response?.data.errors;
+          Object.entries(backendValidationErrors).forEach(
+            ([field, messages]) => {
+              toast.error(`${field} ${messages}`, { duration: 4000 });
+            }
+          );
+        } else {
+          console.error(error);
+        }
+      } else {
+        toast.error("Terjadi kesalahan pada sistem. Silakan coba lagi nanti.");
       }
-    } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const access_token = localStorage.getItem("access_token");
+    if (access_token) {
+      localStorage.setItem("login_redirect", "true");
+      navigate("/dashboard");
+    }
+  }, [navigate]);
 
   return (
     <>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-blue-100 px-4">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
-          {/* Judul */}
-          <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 mb-6 text-center mb-5">
+          <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 mb-6 text-center">
             Login to CashMate
           </h1>
 
-          {/* Form */}
-          <form className="space-y-4" onSubmit={handleLogin}>
+          <form
+            className="space-y-4"
+            onSubmit={form.handleSubmit(handleLoginSubmit)}
+          >
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email
               </label>
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                {...form.register("email")}
                 placeholder="Masukkan email"
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 required
@@ -109,8 +106,7 @@ const LoginPage = () => {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  {...form.register("password")}
                   placeholder="Masukkan password"
                   className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none pr-12"
                   required
@@ -128,8 +124,6 @@ const LoginPage = () => {
                 </button>
               </div>
             </div>
-
-            {error && <p className="text-red-500">{error}</p>}
 
             <button
               type="submit"
