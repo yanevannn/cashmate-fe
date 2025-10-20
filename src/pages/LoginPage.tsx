@@ -3,14 +3,18 @@ import { Link, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
-import { doLogin } from "../api/apiAuth";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { jwtDecode } from "jwt-decode";
+import { doLogin } from "../api/apiAuth";
 import { Eye, EyeOff } from "lucide-react";
 
-type LoginFormSchema = {
-  email: string;
-  password: string;
-};
+const loginFromSchema = z.object({
+  email: z.email("Email tidak valid"),
+  password: z.string().min(8, "Password terlalu pendek").max(100, "Password terlalu panjang"),
+})
+
+type LoginFormSchema = z.infer<typeof loginFromSchema>;
 
 type UserInfo = {
   id: string;
@@ -22,7 +26,10 @@ type UserInfo = {
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const form = useForm<LoginFormSchema>();
+  const form = useForm<LoginFormSchema>({
+    resolver: zodResolver(loginFromSchema),
+    mode : "onSubmit"
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -94,9 +101,10 @@ const LoginPage = () => {
                 type="email"
                 {...form.register("email")}
                 placeholder="Masukkan email"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-4 py-2 mb-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 required
               />
+              <span className="text-xs text-red-500 font-medium">{form.formState.errors.email?.message}</span>
             </div>
 
             <div>
@@ -108,7 +116,7 @@ const LoginPage = () => {
                   type={showPassword ? "text" : "password"}
                   {...form.register("password")}
                   placeholder="Masukkan password"
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none pr-12"
+                  className="w-full px-4 py-2 mb-1 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none pr-12"
                   required
                 />
                 <button
@@ -123,6 +131,7 @@ const LoginPage = () => {
                   )}
                 </button>
               </div>
+              <span className="text-xs text-red-500 font-medium ">{form.formState.errors.password?.message}</span>
             </div>
 
             <button
